@@ -2,9 +2,13 @@ name: Preveri proste termine
 
 on:
   schedule:
-    # Vsakih 15 minut; znotraj zagona skripta preveri 3x na 5 minut,
-    # tako da je dejanska granularnost ~5 min tudi ob zamudah GitHubovega planerja.
-    - cron: "*/15 * * * *"
+    # GitHubov planer je "best effort": zamujene sprozitve PRESKOCI, ne postavi
+    # v vrsto, zato je "*/15" v praksi pomenil zagon na ~2 uri. Namesto pogostih
+    # kratkih zagonov imamo zato en DOLG zagon na uro, ki znotraj sebe preveri
+    # 11x na 5 minut (REPEAT x REPEAT_SLEEP = ~55 min pokritosti).
+    # Ce bi bile luknje se prevelike, pomaga "*/30 * * * *": concurrency spodaj
+    # preprecuje prekrivanje, dodatna sprozitev samo pocaka in zapre luknjo.
+    - cron: "0 * * * *"
   workflow_dispatch:        # rocni zagon iz zavihka Actions
 
 permissions:
@@ -17,7 +21,7 @@ concurrency:
 jobs:
   preveri:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 70       # zagon traja ~56 min, pustimo rezervo
 
     steps:
       - uses: actions/checkout@v4
@@ -46,8 +50,8 @@ jobs:
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           # ------------------------------------------------------------------
           WEEKS_AHEAD: "15"
-          REPEAT: "3"
-          REPEAT_SLEEP: "300"
+          REPEAT: "11"        # 11 pregledov na zagon
+          REPEAT_SLEEP: "300" # na 5 minut  ->  ~55 min pokritosti
         run: python checker.py
 
       - name: Shrani stanje
