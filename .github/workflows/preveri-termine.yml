@@ -8,7 +8,7 @@ on:
     # 11x na 5 minut (REPEAT x REPEAT_SLEEP = ~55 min pokritosti).
     # Ce bi bile luknje se prevelike, pomaga "*/30 * * * *": concurrency spodaj
     # preprecuje prekrivanje, dodatna sprozitev samo pocaka in zapre luknjo.
-    - cron: "0 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:        # rocni zagon iz zavihka Actions
 
 permissions:
@@ -50,7 +50,7 @@ jobs:
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           # ------------------------------------------------------------------
           WEEKS_AHEAD: "15"
-          REPEAT: "11"        # 11 pregledov na zagon
+          REPEAT: "22"        # 22 pregledov na zagon
           REPEAT_SLEEP: "300" # na 5 minut  ->  ~55 min pokritosti
         run: python checker.py
 
