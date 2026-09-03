@@ -8,7 +8,7 @@ on:
     # 11x na 5 minut (REPEAT x REPEAT_SLEEP = ~55 min pokritosti).
     # Ce bi bile luknje se prevelike, pomaga "*/30 * * * *": concurrency spodaj
     # preprecuje prekrivanje, dodatna sprozitev samo pocaka in zapre luknjo.
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:        # rocni zagon iz zavihka Actions
 
 permissions:
