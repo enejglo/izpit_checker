@@ -1,30 +1,57 @@
 name: Preveri proste termine
 
+# ---------------------------------------------------------------------------
+# ZAKAJ TAKO
+#
+# GitHubov planer je "best effort": sprozitev se lahko zamakne, ob visoki
+# obremenitvi pa se preprosto ZAVRZE in se NE nadomesti. Vrh ure (:00) je
+# najslabsi mozen termin, zato "*/15" ni dobra izbira -- vsaka cetrta
+# sprozitev pade tocno na :00.
+#
+# Drugo, kar je prej lomilo urnik: zagon je trajal ~67 min (REPEAT 13 x 300 s
+# + delo), cron pa je bil na 15 min. Ob "concurrency" skupini GitHub hrani
+# NAJVEC EN cakajoc zagon -- vsak naslednji preklice prejsnjega cakajocega.
+# Efektivna frekvenca zato ni bila cron, ampak trajanje joba.
+#
+# Pravilo: TRAJANJE JOBA MORA BITI KRAJSE OD CRON INTERVALA.
+# Tu: cron na 10 min, job ~9,5 min (RUN_SECONDS 540), timeout 12 min.
+# ---------------------------------------------------------------------------
+
 on:
   schedule:
-    # GitHubov planer je "best effort": zamujene sprozitve PRESKOCI, ne postavi
-    # v vrsto, zato je "*/15" v praksi pomenil zagon na ~2 uri. Namesto pogostih
-    # kratkih zagonov imamo zato en DOLG zagon na uro, ki znotraj sebe preveri
-    # 11x na 5 minut (REPEAT x REPEAT_SLEEP = ~55 min pokritosti).
-    # Ce bi bile luknje se prevelike, pomaga "*/30 * * * *": concurrency spodaj
-    # preprecuje prekrivanje, dodatna sprozitev samo pocaka in zapre luknjo.
-    - cron: "*/15 * * * *"
-  workflow_dispatch:        # rocni zagon iz zavihka Actions
+    # Na 10 minut, a z zamikom od vrha ure (izognemo se :00 in :30 spici).
+    - cron: "3,13,23,33,43,53 * * * *"
+    #
+    # Ce vklopis veriženje (secret CHAIN_PAT, zadnji korak spodaj), TO
+    # ZAKOMENTIRAJ in uporabi samo varovalko, sicer se bosta urnika sestevala:
+    # - cron: "7,37 * * * *"
+  workflow_dispatch:          # rocni zagon iz zavihka Actions
 
 permissions:
-  contents: write           # da lahko commita state.json
+  contents: write             # da lahko commita state.json
 
 concurrency:
   group: preveri-termine
-  cancel-in-progress: false
+  # true = obvisel zagon ne blokira naslednjega. Ker je job kratek in stanje
+  # zapisemo sproti, je izguba prekinjenega zagona zanemarljiva.
+  cancel-in-progress: true
 
 jobs:
   preveri:
     runs-on: ubuntu-latest
-    timeout-minutes: 70       # zagon traja ~56 min, pustimo rezervo
+    timeout-minutes: 12       # zagon traja ~9,5 min, rezerva za setup
+
+    env:
+      TZ: Europe/Ljubljana    # runner tece v UTC; brez tega se okoli polnoci
+                              # napacno izracuna zacetek tedna
+      # samo zastavica (ne skrivnost), da lahko zadnji korak preveri "if:"
+      HAS_CHAIN: ${{ secrets.CHAIN_PAT != '' }}    # runner tece v UTC; brez tega se okoli polnoci
+                              # napacno izracuna zacetek tedna
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # da "git pull --rebase" deluje brez tezav
 
       - uses: actions/setup-python@v5
         with:
@@ -37,7 +64,7 @@ jobs:
         id: check
         env:
           PYTHONUNBUFFERED: "1"
-          # --- izbereš kanal(e): nastavi samo tiste secrete, ki jih rabiš ---
+          # --- izberes kanal(e): nastavi samo tiste secrete, ki jih rabis ---
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
@@ -49,20 +76,50 @@ jobs:
           MAIL_TO: ${{ secrets.MAIL_TO }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           # ------------------------------------------------------------------
-          WEEKS_AHEAD: "15"
-          REPEAT: "13"        #13 pregledov na zagon
-          REPEAT_SLEEP: "300" # na 5 minut  ->  ~55 min pokritosti
+          WEEKS_AHEAD: "15"     # poln pregled (prvi cikel vsakega zagona)
+          QUICK_WEEKS: "6"      # nadaljnji cikli le prvih 6 tednov; 0 = vedno vsi
+          RUN_SECONDS: "540"    # proracun zagona: ~9 min
+          REPEAT_SLEEP: "300"   # korak 5 min  ->  2 pregleda na zagon
+          HTTP_TRIES: "3"       # ponovni poskusi ob 5xx / timeoutu
         run: python checker.py
 
       - name: Shrani stanje
+        if: always()            # stanje shrani tudi, ce je kaksen cikel padel
         run: |
-          if [[ -n "$(git status --porcelain state.json)" ]]; then
-            git config user.name  "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add state.json
-            git commit -m "stanje terminov: $(date -u '+%Y-%m-%d %H:%M')Z [skip ci]"
-            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
-            git push
-          else
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain state.json)" ]]; then
             echo "Stanje nespremenjeno."
+            exit 0
           fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git commit -m "stanje terminov: $(date -u '+%Y-%m-%d %H:%M')Z [skip ci]"
+
+          # Vec zaporednih zagonov lahko trci ob potiskanju -> par poskusov.
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push; then
+              exit 0
+            fi
+            echo "Potiskanje ni uspelo (poskus $i), poskusam znova ..."
+            sleep $((i * 5))
+          done
+          echo "::warning::state.json ni bilo mogoce potisniti; naslednji zagon bo popravil."
+
+      # -----------------------------------------------------------------
+      # NEOBVEZNO: veriženje. GitHubov cron je nezanesljiv, workflow_dispatch
+      # ni -- zato lahko vsak zagon sam sprozi naslednjega in dobis stabilnih
+      # ~10 min, neodvisno od planerja.
+      #
+      # Potrebujes fine-grained PAT s pravico "Actions: write", shranjen kot
+      # secret CHAIN_PAT. Vgrajeni GITHUB_TOKEN tega NE zmore: dogodki,
+      # sprozeni z njim, namenoma ne ustvarijo novega zagona.
+      #
+      # Ko to vklopis, zgoraj preklopi cron na varovalko "7,37 * * * *".
+      # -----------------------------------------------------------------
+      - name: Sprozi naslednji krog
+        if: ${{ always() && env.HAS_CHAIN == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.CHAIN_PAT }}
+        run: gh workflow run preveri-termine.yml --repo "${GITHUB_REPOSITORY}"
