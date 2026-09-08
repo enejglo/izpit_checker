@@ -77,7 +77,7 @@ jobs:
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           # ------------------------------------------------------------------
           WEEKS_AHEAD: "15"     # poln pregled (prvi cikel vsakega zagona)
-          QUICK_WEEKS: "6"      # nadaljnji cikli le prvih 6 tednov; 0 = vedno vsi
+          QUICK_WEEKS: "8"      # nadaljnji cikli le prvih 6 tednov; 0 = vedno vsi
           RUN_SECONDS: "540"    # proracun zagona: ~9 min
           REPEAT_SLEEP: "300"   # korak 5 min  ->  2 pregleda na zagon
           HTTP_TRIES: "3"       # ponovni poskusi ob 5xx / timeoutu
