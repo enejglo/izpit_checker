@@ -3,8 +3,22 @@
 Checker prostih terminov za vozniski izpit (eUprava / AVP).
 
 Poklice interni AJAX endpoint strani e-uprava.gov.si za N tednov naprej,
-razcleni termine, primerja z zadnjim znanim stanjem in poslje Telegram
-obvestilo samo za NOVE termine.
+razcleni termine, primerja z zadnjim znanim stanjem in poslje obvestilo
+samo za NOVE termine.
+
+Spremembe glede na prejsnjo razlicico:
+  * zanka v main() dela po CASOVNEM PRORACUNU (RUN_SECONDS) in brez drifta,
+    da je trajanje zagona predvidljivo in krajse od cron intervala;
+  * delne napake (pade en teden) ne izbrisejo ze znanih terminov iz stanja,
+    zato ni vec laznih "novih termin" obvestil ob vrnitvi povezave;
+  * HTTP zahtevki imajo ponovne poskuse z eksponentnim odlogom;
+  * neuspesno razclenjena stran (ni tabele in ni "ni rezultatov") se steje
+    kot napaka, ne kot "nic terminov";
+  * izhodna koda je 0, ce je uspel VSAJ EN cikel (prej je en padec zadnjega
+    cikla obarval cel zagon rdece);
+  * datum se racuna v izbranem casovnem pasu (TZ), ne v UTC;
+  * neobvezen hitri nacin: vsak cikel preveri le prvih QUICK_WEEKS tednov,
+    poln pregled pa le prvi cikel zagona (manj obremenitve e-uprave).
 """
 
 import hashlib
@@ -14,10 +28,15 @@ import random
 import re
 import sys
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import requests
 from bs4 import BeautifulSoup
+
+try:  # Python 3.9+
+    from zoneinfo import ZoneInfo
+except ImportError:  # pragma: no cover
+    ZoneInfo = None
 
 # --------------------------------------------------------------------------
 # NASTAVITVE  -- tukaj spreminjas, kaj se spremlja
@@ -43,15 +62,23 @@ FILTERS = {
 }
 
 WEEKS_AHEAD = int(os.environ.get("WEEKS_AHEAD", "15"))
+# Koliko tednov preveri "hitri" cikel. Prazno / 0 -> vedno vseh WEEKS_AHEAD.
+QUICK_WEEKS = int(os.environ.get("QUICK_WEEKS", "0")) or WEEKS_AHEAD
 STATE_FILE = os.environ.get("STATE_FILE", "state.json")
+TIMEZONE = os.environ.get("TZ", "Europe/Ljubljana")
+
+HTTP_TRIES = max(1, int(os.environ.get("HTTP_TRIES", "3")))
+HTTP_TIMEOUT = int(os.environ.get("HTTP_TIMEOUT", "30"))
+POLITE_MIN = float(os.environ.get("POLITE_MIN", "0.6"))
+POLITE_MAX = float(os.environ.get("POLITE_MAX", "1.2"))
 
 # Lepa povezava, ki jo posljemo v obvestilu (odpre stran z istimi filtri).
 PUBLIC_URL = "https://e-uprava.gov.si/si/javne-evidence/prosti-termini-zemljevid.html"
 
 HEADERS = {
     "User-Agent": (
-        "prosti-termini-checker/1.0 (osebna uporaba; "
-        "https://github.com/ - kontakt prek GitHub)"
+        "prosti-termini-checker/2.0 (osebna uporaba; "
+        "https://github.com/enejglo/izpit_checker)"
     ),
     "X-Requested-With": "XMLHttpRequest",
     "Accept-Language": "sl,en;q=0.8",
@@ -62,24 +89,72 @@ TIME_RE = re.compile(r"\b([01]?\d|2[0-3]):([0-5]\d)\b")
 NO_RESULTS = "ni rezultatov"
 
 
+class FetchError(RuntimeError):
+    """Zahtevek ali razclenitev tedna ni uspela."""
+
+
+# --------------------------------------------------------------------------
+# Cas
+# --------------------------------------------------------------------------
+
+def today_local() -> date:
+    """Danasnji dan v izbranem casovnem pasu (runner tece v UTC)."""
+    if ZoneInfo is not None:
+        try:
+            return datetime.now(ZoneInfo(TIMEZONE)).date()
+        except Exception:  # noqa: BLE001 - neznan TZ -> pade nazaj na sistemski cas
+            pass
+    return date.today()
+
+
+def stamp() -> str:
+    if ZoneInfo is not None:
+        try:
+            return datetime.now(ZoneInfo(TIMEZONE)).strftime("%H:%M:%S")
+        except Exception:  # noqa: BLE001
+            pass
+    return time.strftime("%H:%M:%S")
+
+
 # --------------------------------------------------------------------------
 # Pridobivanje in razclenjevanje
 # --------------------------------------------------------------------------
 
 def week_starts(n_weeks: int):
-    """Ponedeljki (oz. danasnji dan za tekoci teden) za n tednov naprej."""
-    today = date.today()
+    """Ponedeljki za n tednov naprej, zacensi s tekocim tednom."""
+    today = today_local()
     monday = today - timedelta(days=today.weekday())
     for i in range(n_weeks):
         yield monday + timedelta(weeks=i)
 
 
+def week_of(datum: str):
+    """Ponedeljek tedna, v katerem je dani datum (ISO niz). None ob napaki."""
+    try:
+        d = date.fromisoformat(datum)
+    except (TypeError, ValueError):
+        return None
+    return d - timedelta(days=d.weekday())
+
+
 def fetch_week(session: requests.Session, day: date) -> str:
+    """Naloze en teden. Ob napaki poskusi znova z eksponentnim odlogom."""
     params = dict(FILTERS)
     params["calendar_date"] = day.isoformat()
-    resp = session.get(BASE_URL, params=params, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    return resp.text
+
+    zadnja_napaka = None
+    for poskus in range(HTTP_TRIES):
+        if poskus:
+            time.sleep(min(8.0, 1.5 * (2 ** (poskus - 1))) + random.random())
+        try:
+            resp = session.get(
+                BASE_URL, params=params, headers=HEADERS, timeout=HTTP_TIMEOUT
+            )
+            resp.raise_for_status()
+            return resp.text
+        except requests.RequestException as exc:
+            zadnja_napaka = exc
+    raise FetchError(f"{HTTP_TRIES} poskusov ni uspelo: {zadnja_napaka}")
 
 
 def clean(text: str) -> str:
@@ -95,10 +170,15 @@ def parse_slots(html: str):
         <td>07:30</td> <td>CELJE ...</td> <td>B, B1</td> <td>1</td> <td/>
       <tr class="js_dicDetails">   <- podrobnosti prejsnje vrstice
         <td>Ljubecna, Cesta v Celje 14 ... Preverjanje znanja voznje</td>
+
+    Dvigne FetchError, ce stran ne vsebuje ne terminov ne oznake
+    "ni rezultatov" -- takrat gre skoraj zagotovo za spremenjen HTML ali
+    za stran z napako, ne za teden brez terminov.
     """
     soup = BeautifulSoup(html, "html.parser")
+    besedilo = clean(soup.get_text(" ")).lower()
 
-    if NO_RESULTS in clean(soup.get_text(" ")).lower():
+    if NO_RESULTS in besedilo:
         return []
 
     rows = soup.select("tr")
@@ -132,7 +212,9 @@ def parse_slots(html: str):
         ura = texts[0]
         center = texts[1] if len(texts) > 1 else ""
         # odstrani prazni "(cez priblizno vec kot )" repek, ki ga stran vedno izpise
-        center = re.sub(r"\(\s*(?:cez|čez)?\s*(?:pribli[zž]no)?\s*(?:ve[cč] kot)?\s*\)", "", center)
+        center = re.sub(
+            r"\(\s*(?:cez|čez)?\s*(?:pribli[zž]no)?\s*(?:ve[cč] kot)?\s*\)", "", center
+        )
         center = clean(center)
         kategorije = texts[2] if len(texts) > 2 else ""
         mesta = texts[3] if len(texts) > 3 and re.fullmatch(r"\d+", texts[3]) else ""
@@ -148,6 +230,9 @@ def parse_slots(html: str):
             }
         )
 
+    if not slots and not soup.select("tr"):
+        raise FetchError("stran brez tabele in brez oznake 'ni rezultatov'")
+
     return slots
 
 
@@ -156,31 +241,66 @@ def slot_key(s: dict) -> str:
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
 
-def collect_all(weeks: int):
+def collect(weeks: int):
+    """Vrne (slots, uspeli_tedni, napake).
+
+    uspeli_tedni je mnozica ponedeljkov, ki so se dejansko naloziti in
+    razclenili. Tedni, ki niso v njej, se v stanju NE pocistijo.
+    """
     session = requests.Session()
-    all_slots = []
-    errors = []
-    for i, day in enumerate(week_starts(weeks)):
+    slots = []
+    uspeli = set()
+    napake = []
+
+    dnevi = list(week_starts(weeks))
+    for i, day in enumerate(dnevi):
         try:
-            html = fetch_week(session, day)
-            all_slots.extend(parse_slots(html))
-        except Exception as exc:  # noqa: BLE001
-            errors.append(f"{day.isoformat()}: {exc}")
-        if i + 1 < weeks:
-            time.sleep(0.6 + random.random() * 0.6)  # vljuden razmik
-    return all_slots, errors
+            slots.extend(parse_slots(fetch_week(session, day)))
+            uspeli.add(day)
+        except (FetchError, requests.RequestException) as exc:
+            napake.append(f"{day.isoformat()}: {exc}")
+        except Exception as exc:  # noqa: BLE001 - npr. nepricakovan HTML
+            napake.append(f"{day.isoformat()}: nepricakovana napaka: {exc}")
+        if i + 1 < len(dnevi):
+            time.sleep(POLITE_MIN + random.random() * max(0.0, POLITE_MAX - POLITE_MIN))
+
+    return slots, uspeli, napake
 
 
 # --------------------------------------------------------------------------
 # Stanje
+#
+# Format:
+#   {"stevilo": 20, "znani": {"<kljuc>": {"datum": "...", "ura": "...", ...}}}
+# Podprt je tudi stari format, kjer je vrednost niz "YYYY-MM-DD HH:MM".
 # --------------------------------------------------------------------------
+
+def _normaliziraj(kljuc: str, vrednost) -> dict:
+    if isinstance(vrednost, dict):
+        osnova = {
+            "datum": "?", "ura": "", "center": "",
+            "naslov": "", "kategorije": "", "mesta": "",
+        }
+        osnova.update(vrednost)
+        return osnova
+    # stari format: "2026-12-14 13:00"
+    deli = str(vrednost).split()
+    return {
+        "datum": deli[0] if deli else "?",
+        "ura": deli[1] if len(deli) > 1 else "",
+        "center": "", "naslov": "", "kategorije": "", "mesta": "",
+    }
+
 
 def load_state(path: str) -> dict:
     try:
         with open(path, encoding="utf-8") as fh:
-            return json.load(fh)
+            state = json.load(fh)
     except (OSError, json.JSONDecodeError):
         return {"znani": {}}
+    znani = state.get("znani") or {}
+    state["znani"] = {k: _normaliziraj(k, v) for k, v in znani.items()}
+    return state
 
 
 def save_state(path: str, state: dict) -> None:
@@ -393,17 +513,20 @@ def obvesti(slots: list) -> None:
 
 
 # --------------------------------------------------------------------------
+# En pregled
+# --------------------------------------------------------------------------
 
-def run_once() -> int:
-    """En pregled. Vrne stevilo novih terminov (-1 ob popolni napaki)."""
-    slots, errors = collect_all(WEEKS_AHEAD)
-    for e in errors:
+def run_once(weeks: int) -> int:
+    """En pregled. Vrne stevilo novih terminov (-1, ce ni uspel noben teden)."""
+    slots, uspeli_tedni, napake = collect(weeks)
+
+    for e in napake:
         print(f"[napaka pri pridobivanju] {e}", file=sys.stderr)
 
-    # Ce so padli VSI tedni, ne diraj stanja - sicer bi ob vrnitvi
-    # povezave vse termine poslal kot "nove".
-    if errors and len(errors) == WEEKS_AHEAD:
-        print("Vsi zahtevki so padli, stanja ne posodabljam.", file=sys.stderr)
+    # Ce ni uspel noben teden, se stanja sploh ne dotikamo - sicer bi ob
+    # vrnitvi povezave vse termine poslali kot "nove".
+    if not uspeli_tedni:
+        print("Noben teden ni uspel, stanja ne posodabljam.", file=sys.stderr)
         return -1
 
     state = load_state(STATE_FILE)
@@ -412,39 +535,105 @@ def run_once() -> int:
     trenutni = {slot_key(s): s for s in slots}
     novi = [s for k, s in trenutni.items() if k not in znani]
 
-    stamp = time.strftime("%H:%M:%S", time.gmtime())
-    print(f"[{stamp}Z] terminov: {len(trenutni)} | novih: {len(novi)}")
+    # Termini iz tednov, ki jih ta krog NISMO uspeli preveriti (napaka ali
+    # hitri nacin), ostanejo v stanju nespremenjeni. Brez tega bi jih naslednji
+    # uspesen pregled javil kot nove.
+    prenesenih = 0
+    novo_stanje = dict(trenutni)
+    for k, v in znani.items():
+        if k in novo_stanje:
+            continue
+        if week_of(v.get("datum", "")) not in uspeli_tedni:
+            novo_stanje[k] = v
+            prenesenih += 1
+
+    print(
+        f"[{stamp()}] tednov OK: {len(uspeli_tedni)}/{weeks} | "
+        f"terminov: {len(trenutni)} | novih: {len(novi)} | "
+        f"prenesenih iz nepreverjenih tednov: {prenesenih}"
+    )
 
     if novi:
         obvesti(novi)
 
     # V datoteko NE pisemo casovne znacke, da se spremeni samo takrat,
     # ko se dejansko spremeni nabor terminov (manj commitov v GitHub Actions).
-    state["znani"] = {k: f"{v['datum']} {v['ura']}" for k, v in trenutni.items()}
-    state["stevilo"] = len(trenutni)
+    state["znani"] = novo_stanje
+    state["stevilo"] = len(novo_stanje)
     save_state(STATE_FILE, state)
     return len(novi)
 
 
-def main() -> int:
-    repeat = max(1, int(os.environ.get("REPEAT", "1")))
-    sleep_s = max(30, int(os.environ.get("REPEAT_SLEEP", "300")))
+# --------------------------------------------------------------------------
+# Zanka z casovnim proracunom
+# --------------------------------------------------------------------------
 
-    skupaj_novih = 0
-    zadnji = -1
-    for i in range(repeat):
-        if i:
-            time.sleep(sleep_s)
-        zadnji = run_once()
-        if zadnji > 0:
-            skupaj_novih += zadnji
+def povzetek(vrstice: list) -> None:
+    """Zapise povzetek v GitHub Actions summary (viden v zavihku Actions)."""
+    pot = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not pot:
+        return
+    try:
+        with open(pot, "a", encoding="utf-8") as fh:
+            fh.write("\n".join(vrstice) + "\n")
+    except OSError:
+        pass
+
+
+def main() -> int:
+    tick = max(30, int(os.environ.get("REPEAT_SLEEP", "300")))
+    # RUN_SECONDS ima prednost pred REPEAT: zagon se konca, ko porabi proracun.
+    budget = int(os.environ.get("RUN_SECONDS", "0"))
+    repeat = max(1, int(os.environ.get("REPEAT", "1")))
+
+    zacetek = time.monotonic()
+    ciklov = uspehov = skupaj_novih = 0
+
+    while True:
+        # Prvi cikel zagona vedno pregleda vse tedne, nadaljnji le prve
+        # QUICK_WEEKS (ce je nastavljen manjsi od WEEKS_AHEAD).
+        weeks = WEEKS_AHEAD if ciklov == 0 else QUICK_WEEKS
+
+        try:
+            rez = run_once(weeks)
+        except Exception as exc:  # noqa: BLE001 - cikel ne sme podreti zanke
+            print(f"[napaka v ciklu] {exc}", file=sys.stderr)
+            rez = -1
+
+        ciklov += 1
+        if rez >= 0:
+            uspehov += 1
+            skupaj_novih += rez
+
+        naslednji = zacetek + ciklov * tick
+        if budget:
+            if naslednji - zacetek >= budget:
+                break
+        elif ciklov >= repeat:
+            break
+
+        cakaj = naslednji - time.monotonic()
+        if cakaj > 0:
+            time.sleep(cakaj)
+
+    trajanje = int(time.monotonic() - zacetek)
+    print(f"Konec: {ciklov} ciklov, {uspehov} uspesnih, "
+          f"{skupaj_novih} novih terminov, {trajanje}s.")
+    povzetek([
+        f"**Ciklov:** {ciklov} ({uspehov} uspesnih)",
+        f"**Novih terminov:** {skupaj_novih}",
+        f"**Trajanje:** {trajanje}s",
+    ])
 
     gh_out = os.environ.get("GITHUB_OUTPUT")
     if gh_out:
         with open(gh_out, "a", encoding="utf-8") as fh:
             fh.write(f"new_count={skupaj_novih}\n")
+            fh.write(f"cycles={ciklov}\n")
+            fh.write(f"ok_cycles={uspehov}\n")
 
-    return 1 if zadnji < 0 else 0
+    # Rdec zagon samo, ce ni uspel NOBEN cikel.
+    return 0 if uspehov else 1
 
 
 if __name__ == "__main__":
