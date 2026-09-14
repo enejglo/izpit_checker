@@ -1,6 +1,94 @@
 {
- "stevilo": 2,
+ "stevilo": 27,
  "znani": {
+  "031bce2ee7aa33d0": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-11-25",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "15:30"
+  },
+  "0d0ae71298b67b87": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:30"
+  },
+  "0d9cbf9244f36666": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:30"
+  },
+  "1edb194cee0e8593": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "07:30"
+  },
+  "254403343acbdfff": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-15",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:00"
+  },
+  "2987671964be91e9": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-15",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "10:30"
+  },
+  "2c3490c874c9d696": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-15",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "09:30"
+  },
+  "2da92df7620d2e4b": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:00"
+  },
+  "2f2a9af356392cb5": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "15:30"
+  },
+  "332c0b4992b3e3a8": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-09",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:30"
+  },
+  "35137dedd3c64cd3": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "08:30"
+  },
   "38c1ddefdee7387e": {
    "center": "KRANJ Območje 2",
    "datum": "2026-09-22",
@@ -9,6 +97,94 @@
    "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
    "ura": "14:00"
   },
+  "4528ff6cf0d64db5": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "08:30"
+  },
+  "526aa56bfd1f8484": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-15",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "08:30"
+  },
+  "5e2d6853d6202ad9": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:00"
+  },
+  "5ecec23d67d5f1f5": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "09:30"
+  },
+  "6d7bf5ebd3c53bbc": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "09:30"
+  },
+  "727266501b7a2c6d": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-11-09",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "10:30"
+  },
+  "7b07dcd8811ca2be": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "14:00"
+  },
+  "86f60e09b3d12e57": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-16",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "10:30"
+  },
+  "9af31bbda9b1ee8a": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-15",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "14:00"
+  },
+  "b2475099d8d026df": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-08",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "14:00"
+  },
+  "bbab81158dc8261a": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-09",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:30"
+  },
   "c94153a1e3d0294d": {
    "center": "KRANJ Območje 2",
    "datum": "2026-11-03",
@@ -16,6 +192,30 @@
    "mesta": "1",
    "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
    "ura": "12:00"
+  },
+  "da0ea74872b5f15a": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "07:30"
+  },
+  "f89bc22d698aef20": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-15",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:00"
+  },
+  "fe370145190dec3a": {
+   "center": "KRANJ Območje 2",
+   "datum": "2026-12-14",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
+   "ura": "10:30"
   }
  }
 }
