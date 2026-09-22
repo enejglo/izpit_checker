@@ -1,5 +1,5 @@
 {
- "stevilo": 15,
+ "stevilo": 14,
  "znani": {
   "0d0ae71298b67b87": {
    "center": "KRANJ Območje 2",
@@ -48,14 +48,6 @@
    "mesta": "1",
    "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
    "ura": "08:30"
-  },
-  "7454b410700c9c0d": {
-   "center": "KRANJ Območje 2",
-   "datum": "2026-10-03",
-   "kategorije": "B, B1",
-   "mesta": "1",
-   "naslov": "KRANJ Kolodvorska cesta 5 Območje 2 Preverjanje znanja vožnje",
-   "ura": "11:00"
   },
   "7609dc904728ff17": {
    "center": "KRANJ Območje 2",
