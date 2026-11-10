@@ -50,14 +50,15 @@ BASE_URL = (
 # Filtri, kot jih stran kodira v URL.
 #   type          1 = voznja (prakticni del), 2 = teorija
 #   cat           kategorija: 6 = B  (izpusti kljuc za "vse kategorije")
-#   izpitniCenter 18 = Kranj      (izpusti za vse centre)
+#   izpitniCenter 18 = OMBOČJE 2 (KRANJ, DOMŽALE)      (izpusti za vse centre)
 #   lokacija      223 = Kranj, Kolodvorska cesta 5
+#   lokacija      173 = Domžale, 71
 FILTERS = {
     "lang": "si",
     "type": "1",
     "cat": "6",
     "izpitniCenter": "18",
-    "lokacija": "223",
+    "lokacija": "173",
     "is_ajax": "1",
 }
 
