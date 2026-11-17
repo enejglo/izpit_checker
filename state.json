@@ -1,5 +1,5 @@
 {
- "stevilo": 29,
+ "stevilo": 37,
  "znani": {
   "02141267c32e0188": {
    "center": "DOMŽALE Območje 2",
@@ -8,6 +8,14 @@
    "mesta": "1",
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "09:30"
+  },
+  "04f606b5c72bd661": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2026-11-26",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "10:30"
   },
   "0602eee34273578f": {
    "center": "DOMŽALE Območje 2",
@@ -65,6 +73,14 @@
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "12:00"
   },
+  "59b72238d5794319": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-02-04",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:00"
+  },
   "61d43897868f07e4": {
    "center": "DOMŽALE Območje 2",
    "datum": "2027-02-09",
@@ -80,6 +96,22 @@
    "mesta": "1",
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "13:00"
+  },
+  "6d72edc6cd703da4": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-02-05",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "08:30"
+  },
+  "6f150c87044698b2": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-02-09",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:00"
   },
   "73fa61f31928805d": {
    "center": "DOMŽALE Območje 2",
@@ -105,6 +137,14 @@
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "10:30"
   },
+  "801a63d6775322d7": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2026-11-26",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "14:00"
+  },
   "8a35db38ec2a401b": {
    "center": "DOMŽALE Območje 2",
    "datum": "2027-02-09",
@@ -129,6 +169,22 @@
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "08:30"
   },
+  "afbc363e2c9ac725": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2026-11-26",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:00"
+  },
+  "b287b8e110c61034": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2026-11-26",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "09:30"
+  },
   "b87420547b0f4794": {
    "center": "DOMŽALE Območje 2",
    "datum": "2027-02-16",
@@ -144,6 +200,14 @@
    "mesta": "1",
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "13:30"
+  },
+  "cb8f4e71e6f54da9": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2026-11-26",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:00"
   },
   "d09f9d27a0fe33c8": {
    "center": "DOMŽALE Območje 2",
