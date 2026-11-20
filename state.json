@@ -1,5 +1,5 @@
 {
- "stevilo": 30,
+ "stevilo": 33,
  "znani": {
   "0602eee34273578f": {
    "center": "DOMŽALE Območje 2",
@@ -17,14 +17,6 @@
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "07:30"
   },
-  "145dfdfd2338359e": {
-   "center": "DOMŽALE Območje 2",
-   "datum": "2026-12-05",
-   "kategorije": "B, B1",
-   "mesta": "1",
-   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
-   "ura": "13:00"
-  },
   "167bfa72ab99f09d": {
    "center": "DOMŽALE Območje 2",
    "datum": "2027-02-17",
@@ -33,9 +25,33 @@
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "12:30"
   },
+  "1a9611d6757fbef3": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-01-28",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "12:00"
+  },
   "36a15c73ad8149ea": {
    "center": "DOMŽALE Območje 2",
    "datum": "2027-02-17",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "07:30"
+  },
+  "37582e827fac25ac": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-01-28",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "13:00"
+  },
+  "3bc968a081f4e118": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-01-29",
    "kategorije": "B, B1",
    "mesta": "1",
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
@@ -232,6 +248,14 @@
    "mesta": "1",
    "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
    "ura": "08:30"
+  },
+  "f96fc2be6f2b33b0": {
+   "center": "DOMŽALE Območje 2",
+   "datum": "2027-01-28",
+   "kategorije": "B, B1",
+   "mesta": "1",
+   "naslov": "Domžale, Ljubljanska cesta 71 Območje 2 Preverjanje znanja vožnje",
+   "ura": "10:30"
   },
   "f9ba8334480938e5": {
    "center": "DOMŽALE Območje 2",
